@@ -1,4 +1,10 @@
 console.log('content script loaded');
+
+const futureColor = '#B5C200';
+const futureHighlightColor = 'rgba(181,194,0,0.15)';
+const futureHueRotate = 215;
+const futureText = '시행 예정';
+
 const inForceColor = '#32A800';
 const inForceHighlightColor = 'rgba(50,168,0,0.15)';
 const inForceHueRotate = 270;
@@ -9,15 +15,10 @@ const abolishedHighlightColor = 'rgba(255,0,0,0.15)';
 const abolishedHueRotate = 150;
 const abolishedText = '폐지';
 
-const outdatedColor = '#c78900';
+const outdatedColor = '#C78900';
 const outdatedHighlightColor = 'rgba(199,137,0,0.15)';
 const outdatedHueRotate = 195;
 const outdatedText = '과거 조문';
-
-const futureColor = '#b5c200';
-const futureHighlightColor = 'rgba(181,194,0,0.15)';
-const futureHueRotate = 215;
-const futureText = '시행 예정';
 
 function waitForElement(selector) {
     return new Promise(resolve => {
@@ -82,7 +83,11 @@ function mark(titleH2, labelText, labelColor, highlightColor, hueRotate) {
     let upperBar = document.querySelector('.pophead');
     if (!upperBar)
         upperBar = document.querySelector('#pop_top');
-    upperBar.style.filter = `hue-rotate(${hueRotate}deg)`;
+    if (upperBar)
+        upperBar.style.filter = `hue-rotate(${hueRotate}deg)`;
+    let coloredButtonBar = document.querySelector('.body_top_area');
+    if (coloredButtonBar)
+        coloredButtonBar.style.filter = `hue-rotate(${hueRotate}deg)`;
 }
 
 function handleLaw(titleElement) {
@@ -100,7 +105,7 @@ function handleLaw(titleElement) {
         const enforceDateMatch = enforceDateElement.textContent.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
         currentEnforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
         historyUrl = `/LSW//lsHstListR.do?lsId=${lsId}`;
-    } else if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop/) !== -1) {
+    } else if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop|admRulSc/) !== -1) {
         lsId = document.querySelector('#admRulSeq').value;
         currentSequence = document.querySelector('#lsiSeq').value;
         const enforceDateElement = document.querySelector('#conTop > div');
@@ -124,17 +129,23 @@ function handleLaw(titleElement) {
     fetch(historyUrl)
         .then(response => response.text())
         .then(text => {
+            // when we got the history page, parse it and find status of the currently viewed law
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, 'text/html');
             const historyElements = doc.querySelectorAll('ul:first-child > li > a');
             const historyInfos = [];
             for (const item of historyElements) {
+                // parse the history list and find the currently viewed law
                 let lawSequence;
                 let enforceDate;
                 let isInForce;
                 let isAbolished;
                 const onClickText = item.getAttribute('onclick');
-                if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop/) !== -1) {
+                // determine the status of the law
+                // note that if currently viewed law is an old version, and it is abolished,
+                // "abolished" status precedences over "outdated" status
+                if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop|admRulSc/) !== -1) {
+                    // for administrative rules
                     const itemSubtitle = item.querySelector('.subtit1_1').textContent;
                     const enforceDateMatch = itemSubtitle.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
                     enforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
@@ -143,6 +154,7 @@ function handleLaw(titleElement) {
                     isAbolished = itemSubtitle.includes('폐지]');
                     isInForce = false;
                 } else if (location.pathname.search(/ordinLinkProc|ordinInfoP/) !== -1) {
+                    // for ordinances
                     const itemSubtitle = item.lastChild.textContent;
                     const enforceDateMatch = itemSubtitle.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
                     enforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
@@ -151,18 +163,22 @@ function handleLaw(titleElement) {
                     isInForce = match[2] === 'Y';
                     isAbolished = itemSubtitle.includes('폐지]');
                 } else {
+                    // for laws
                     const match = onClickText.match(
                         /javascript:lsViewLsHst2\('(.*?)', '.*?', '.*?', '(.*?)', '(.*?)', '.*?' , '(.*?)'\);return false;/
                     );
-                    if (!match)
+                    if (!match) {
+                        // false positive item, skip
                         continue;
+                    }
                     lawSequence = match[1];
                     enforceDate = match[2];
                     isInForce = match[3] === 'Y';
                     isAbolished = match[4].includes('폐지');
                 }
-
                 if (lawSequence === currentSequence && enforceDate === currentEnforceDate) {
+                    // if we found the currently viewed law, we are done searching so apply the style
+                    // and finish
                     if (isInForce) {
                         mark(titleElement, inForceText, inForceColor, inForceHighlightColor, inForceHueRotate);
                         return;
@@ -176,6 +192,7 @@ function handleLaw(titleElement) {
                         return;
                     }
                 }
+                // if it's not the currently viewed law, save the information for later
                 historyInfos.push({
                     lawSequence,
                     enforceDate,
@@ -183,6 +200,9 @@ function handleLaw(titleElement) {
                     isAbolished
                 });
             }
+            // if we didn't find the currently viewed law, we can't say it's in force,
+            // so we check the last law in the history list and say as much as we can
+            // about it
             historyInfos.sort((a, b) => {
                 let orderA = a.enforceDate + a.lawSequence;
                 let orderB = b.enforceDate + b.lawSequence;
@@ -197,23 +217,34 @@ function handleLaw(titleElement) {
                 return;
             }
             if (historyInfos[0].enforceDate === currentEnforceDate) {
+                // the last law has the same enforcement date as the currently viewed law,
+                // so we assume current law has the same status as the last law
                 if (historyInfos[0].enforceDate > todayDate) {
+                    // the last law in the history list is in the future
                     mark(titleElement, futureText, futureColor, futureHighlightColor, futureHueRotate);
                     return;
                 }
                 if (historyInfos[0].lawSequence === currentSequence) {
+                    // the last law in the history list is the currently viewed law
+                    // this should never happen, but just in case
                     mark(titleElement, inForceText, inForceColor, inForceHighlightColor, inForceHueRotate);
                     return;
                 }
             }
+            // the last law in the history list is not the currently viewed law
+            // we resort to assuming it's so old that it's truncated from the history list
             mark(titleElement, outdatedText, outdatedColor, outdatedHighlightColor, outdatedHueRotate);
         });
 }
 
-if (location.pathname.search(/^\/+(LSW\/+)?(ls(Side)?InfoP|lsLinkProc|admRulLsInfoP|conAdmrulByLsPop|ordinLinkProc|ordinInfoP)\.do$/) !== -1) {
-    waitForElement('.ui-layout-pane.ui-layout-pane-center h2')
-        .then(titleElement => handleLaw(titleElement));
-} else if (location.pathname.search(/^\/+(LSW\/+)?lumLsLinkPop\.do$/) !== -1) {
-    waitForElement('#firstRlatLsId')
-        .then(() => handleLaw(document.querySelector('.ui-layout-pane.ui-layout-pane-center h2')));
+function main() {
+    if (location.pathname.search(/^\/+(LSW\/+)?lumLsLinkPop\.do$/) !== -1) {
+        waitForElement('#firstRlatLsId')
+            .then(() => handleLaw(document.querySelector('.ui-layout-pane.ui-layout-pane-center h2')));
+    } else {
+        waitForElement('.ui-layout-pane.ui-layout-pane-center h2')
+            .then(titleElement => handleLaw(titleElement));
+    }
 }
+
+main();
