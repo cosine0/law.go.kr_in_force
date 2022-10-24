@@ -1,24 +1,43 @@
-console.log('content script loaded');
+console.log('law.go.kr_in_force content script loaded');
 
-const futureColor = '#B5C200';
-const futureHighlightColor = 'rgba(181,194,0,0.15)';
-const futureHueRotate = 215;
-const futureText = '시행 예정';
+function MarkStyle(color, highlightColor, hueRotate, labelHtml, tooltip) {
+    this.color = color;
+    this.highlightColor = highlightColor;
+    this.hueRotate = hueRotate;
+    this.labelHtml = labelHtml;
+    this.tooltip = tooltip;
+}
 
-const inForceColor = '#32A800';
-const inForceHighlightColor = 'rgba(50,168,0,0.15)';
-const inForceHueRotate = 270;
-const inForceText = '현행';
-
-const abolishedColor = '#FF0000';
-const abolishedHighlightColor = 'rgba(255,0,0,0.15)';
-const abolishedHueRotate = 150;
-const abolishedText = '폐지';
-
-const outdatedColor = '#C78900';
-const outdatedHighlightColor = 'rgba(199,137,0,0.15)';
-const outdatedHueRotate = 195;
-const outdatedText = '과거 조문';
+const markStyles = {
+    upcoming: new MarkStyle(
+        '#B5C200',
+        'rgba(181,194,0,0.15)',
+        215,
+        '시행 예정',
+        '아직 효력이 발생하기 전인 법령입니다.'
+    ),
+    inForce: new MarkStyle(
+        '#32A800',
+        'rgba(50,168,0,0.15)',
+        270,
+        '현행',
+        '현재 적용되고 있는 법령입니다.'
+    ),
+    old: new MarkStyle(
+        '#C78900',
+        'rgba(199,137,0,0.15)',
+        195,
+        '구(舊)',
+        '개정되어 효력을 잃은 과거 법령입니다.'
+    ),
+    abolished: new MarkStyle(
+        '#FF0000',
+        'rgba(255,0,0,0.15)',
+        150,
+        '폐지',
+        '폐지되어 현재 존재하지 않는 법령입니다.'
+    ),
+};
 
 function waitForElement(selector) {
     return new Promise(resolve => {
@@ -40,8 +59,7 @@ function waitForElement(selector) {
     });
 }
 
-function mark(titleH2, labelText, labelColor, highlightColor, hueRotate) {
-    console.log('marking', titleH2, labelText, labelColor, highlightColor, hueRotate);
+function mark(titleH2, markStyle) {
     const titleContents = [];
     while (titleH2.firstChild) {
         titleContents.push(titleH2.removeChild(titleH2.firstChild));
@@ -51,22 +69,28 @@ function mark(titleH2, labelText, labelColor, highlightColor, hueRotate) {
     titleH2.style.justifyContent = 'center';
 
     const titleDiv = document.createElement('div');
+    titleDiv.classList.add('has-tooltip');
+    titleDiv.style.backgroundColor = markStyle.highlightColor;
     titleDiv.style.font = 'inherit';
     titleDiv.style.padding = '0 0.3em';
     titleDiv.style.borderRadius = '0.4em';
     titleDiv.style.marginRight = '0.5em';
+    const tooltipDiv = document.createElement('div');
+    tooltipDiv.classList.add('tooltip');
+    tooltipDiv.innerHTML = markStyle.tooltip;
+    titleDiv.appendChild(tooltipDiv);
 
-    // put in-force ("현행") label in as a span box on the right of the title
-    const labelSpan = document.createElement('span');
-    labelSpan.innerText = labelText;
-    labelSpan.style.backgroundColor = labelColor;
-    labelSpan.style.color = 'white';
-    labelSpan.style.borderRadius = '0.45em';
-    labelSpan.style.font = 'inherit';
-    labelSpan.style.fontSize = '0.67em';
-    labelSpan.style.padding = '0.05em 0.2em';
-    labelSpan.style.verticalAlign = '0.17em';
-    titleDiv.appendChild(labelSpan);
+    const labelDiv = document.createElement('div');
+    labelDiv.innerHTML = markStyle.labelHtml;
+    labelDiv.style.display = 'inline-block';
+    labelDiv.style.backgroundColor = markStyle.color;
+    labelDiv.style.color = 'white';
+    labelDiv.style.borderRadius = '0.45em';
+    labelDiv.style.font = 'inherit';
+    labelDiv.style.fontSize = '0.67em';
+    labelDiv.style.padding = '0.05em 0.2em';
+    labelDiv.style.verticalAlign = '0.17em';
+    titleDiv.appendChild(labelDiv);
 
     // put original title contents
     const titleText = titleContents[0];
@@ -76,18 +100,15 @@ function mark(titleH2, labelText, labelColor, highlightColor, hueRotate) {
         titleDiv.appendChild(titleContents[i]);
     titleH2.appendChild(titleDiv);
 
-    // also highlight the background of the title text
-    titleDiv.style.backgroundColor = highlightColor;
-
     // finally change the color of upper bar image blue to green
     let upperBar = document.querySelector('.pophead');
     if (!upperBar)
         upperBar = document.querySelector('#pop_top');
     if (upperBar)
-        upperBar.style.filter = `hue-rotate(${hueRotate}deg)`;
+        upperBar.style.filter = `hue-rotate(${markStyle.hueRotate}deg)`;
     let coloredButtonBar = document.querySelector('.body_top_area');
     if (coloredButtonBar)
-        coloredButtonBar.style.filter = `hue-rotate(${hueRotate}deg)`;
+        coloredButtonBar.style.filter = `hue-rotate(${markStyle.hueRotate}deg)`;
 }
 
 function handleLaw(titleElement) {
@@ -180,15 +201,15 @@ function handleLaw(titleElement) {
                     // if we found the currently viewed law, we are done searching so apply the style
                     // and finish
                     if (isInForce) {
-                        mark(titleElement, inForceText, inForceColor, inForceHighlightColor, inForceHueRotate);
+                        mark(titleElement, markStyles.inForce);
                         return;
                     }
                     if (item.querySelector('img[alt="앞으로 시행될 법령"]')) {
-                        mark(titleElement, futureText, futureColor, futureHighlightColor, futureHueRotate);
+                        mark(titleElement, markStyles.upcoming);
                         return;
                     }
                     if (isAbolished) {
-                        mark(titleElement, abolishedText, abolishedColor, abolishedHighlightColor, abolishedHueRotate);
+                        mark(titleElement, markStyles.abolished);
                         return;
                     }
                 }
@@ -213,7 +234,7 @@ function handleLaw(titleElement) {
                 return 0;
             });
             if (historyInfos[0].isAbolished) {
-                mark(titleElement, abolishedText, abolishedColor, abolishedHighlightColor, abolishedHueRotate);
+                mark(titleElement, markStyles.abolished);
                 return;
             }
             if (historyInfos[0].enforceDate === currentEnforceDate) {
@@ -221,19 +242,19 @@ function handleLaw(titleElement) {
                 // so we assume current law has the same status as the last law
                 if (historyInfos[0].enforceDate > todayDate) {
                     // the last law in the history list is in the future
-                    mark(titleElement, futureText, futureColor, futureHighlightColor, futureHueRotate);
+                    mark(titleElement, markStyles.upcoming);
                     return;
                 }
                 if (historyInfos[0].lawSequence === currentSequence) {
                     // the last law in the history list is the currently viewed law
                     // this should never happen, but just in case
-                    mark(titleElement, inForceText, inForceColor, inForceHighlightColor, inForceHueRotate);
+                    mark(titleElement, markStyles.inForce);
                     return;
                 }
             }
             // the last law in the history list is not the currently viewed law
             // we resort to assuming it's so old that it's truncated from the history list
-            mark(titleElement, outdatedText, outdatedColor, outdatedHighlightColor, outdatedHueRotate);
+            mark(titleElement, markStyles.old);
         });
 }
 

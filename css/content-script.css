@@ -12,3 +12,22 @@
 #conScroll {
     height: calc(100% - 70px);
 }
+
+/*noinspection CssUnusedSymbol*/
+.has-tooltip > .tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+    border-radius: 0.5em;
+    background-color: #555;
+    text-align: center;
+    color: #fff;
+    font-size: 0.8em;
+    padding: 0.2em;
+    top: -1.5em;
+}
+
+/*noinspection CssUnusedSymbol*/
+.has-tooltip:hover > .tooltip {
+    visibility: visible;
+}

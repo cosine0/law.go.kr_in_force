@@ -17,15 +17,7 @@
                 "https://*.law.go.kr/*ordinLinkProc.do?*",
                 "https://*.law.go.kr/*ordinInfoP.do?*",
                 "https://*.law.go.kr/*lsSc.do?*",
-                "https://*.law.go.kr/*admRulSc.do?*"
-            ],
-            "all_frames": true,
-            "js": [
-                "js/content-script.js"
-            ]
-        },
-        {
-            "matches": [
+                "https://*.law.go.kr/*admRulSc.do?*",
                 "https://*.law.go.kr/*lsSideInfoP.do?*",
                 "https://*.law.go.kr/*conAdmrulByLsPop.do?*"
             ],
