@@ -1,11 +1,13 @@
 console.log('law.go.kr_in_force content script loaded');
 
-function MarkStyle(color, highlightColor, hueRotate, labelHtml, tooltip) {
-    this.color = color;
-    this.highlightColor = highlightColor;
-    this.hueRotate = hueRotate;
-    this.labelHtml = labelHtml;
-    this.tooltip = tooltip;
+class MarkStyle {
+    constructor(color, highlightColor, hueRotate, labelHtml, tooltip) {
+        this.color = color;
+        this.highlightColor = highlightColor;
+        this.hueRotate = hueRotate;
+        this.labelHtml = labelHtml;
+        this.tooltip = tooltip;
+    }
 }
 
 const markStyles = {
