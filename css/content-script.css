@@ -1,34 +1,62 @@
-/*noinspection CssUnusedSymbol*/
 #container {
     height: calc(100% - 42px);
 }
 
-/*noinspection CssUnusedSymbol*/
 #bodySideContent {
     height: calc(100% - 36px);
 }
 
-/*noinspection CssUnusedSymbol*/
 #conScroll {
     height: calc(100% - 70px);
 }
 
-/*noinspection CssUnusedSymbol*/
-.has-tooltip > .tooltip {
-    visibility: hidden;
-    position: absolute;
-    z-index: 1;
-    margin: auto;
-    border-radius: 0.5em;
-    padding: 0.2em;
-    background-color: #555;
-    text-align: center;
-    color: #fff;
-    font-size: 0.8em;
-    top: -1.55em;
+/* element that has a tooltip */
+.lif-has-tooltip {
+    position: relative;
 }
 
-/*noinspection CssUnusedSymbol*/
-.has-tooltip:hover > .tooltip {
-    visibility: visible;
+/* tooltip bubble */
+.lif-tooltip {
+    /* hide the tooltip by default */
+    display: none;
+
+    /* position the tooltip below the hovered element, with a small margin for the arrow */
+    position: absolute;
+    top: calc(100% + 0.5em);
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* make the tooltip look like a bubble */
+    width: max-content;
+    padding: 0.5em;
+    background: #000;
+    color: #fff;
+    border-radius: 0.5em;
+    font-size: 0.8em;
+    text-align: center;
+}
+
+/* tooltip arrow */
+.lif-tooltip::before {
+    /* position the arrow at the bottom of the tooltip bubble */
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -0.4em;
+
+    /* make the arrow look like a triangle pointing up */
+    border: 0.5em solid transparent;
+    border-bottom-color: #000;
+}
+
+/* show the tooltip when the element is hovered */
+.lif-has-tooltip:hover .lif-tooltip {
+    display: block;
+}
+
+/* hovered element effect filter */
+.lif-has-tooltip:hover {
+    filter: contrast(1.5);
+    box-shadow: 0 0 0.5em #000;
 }

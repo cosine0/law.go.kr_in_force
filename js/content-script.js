@@ -1,43 +1,43 @@
 console.log('law.go.kr_in_force content script loaded');
 
 class MarkStyle {
-    constructor(color, highlightColor, hueRotate, labelHtml, tooltip) {
-        this.color = color;
+    constructor(badgeColor, badgeHtml, highlightColor, hueRotate, tooltipText) {
+        this.badgeColor = badgeColor;
+        this.badgeHtml = badgeHtml;
         this.highlightColor = highlightColor;
         this.hueRotate = hueRotate;
-        this.labelHtml = labelHtml;
-        this.tooltip = tooltip;
+        this.tooltipText = tooltipText;
     }
 }
 
 const markStyles = {
     upcoming: new MarkStyle(
         '#B5C200',
+        '시행 예정',
         'rgba(181,194,0,0.15)',
         215,
-        '시행 예정',
         '아직 효력이 발생하기 전인 법령입니다.'
     ),
     inForce: new MarkStyle(
         '#32A800',
+        '현행',
         'rgba(50,168,0,0.15)',
         270,
-        '현행',
-        '현재 적용되고 있는 법령입니다.'
+        '실제 효력을 가지고 있는 현재 법령입니다.'
     ),
     old: new MarkStyle(
         '#C78900',
+        '구(舊)',
         'rgba(199,137,0,0.15)',
         195,
-        '구(舊)',
-        '개정되어 효력을 잃은 과거 법령입니다.'
+        '개정되어 효력을 잃은, 과거의 법령 내용입니다.'
     ),
     abolished: new MarkStyle(
         '#FF0000',
+        '폐지',
         'rgba(255,0,0,0.15)',
         150,
-        '폐지',
-        '폐지되어 현재 존재하지 않는 법령입니다.'
+        '폐지되어 법령에서 제외된 항목입니다.'
     ),
 };
 
@@ -70,39 +70,40 @@ function mark(titleH2, markStyle) {
     titleH2.style.alignItems = 'center';
     titleH2.style.justifyContent = 'center';
 
+    // put title contents in a div
     const titleDiv = document.createElement('div');
-    titleDiv.classList.add('has-tooltip');
+    titleDiv.style.display = 'flex';
+    titleDiv.style.alignItems = 'center';
+    titleDiv.style.justifyContent = 'center';
     titleDiv.style.backgroundColor = markStyle.highlightColor;
-    titleDiv.style.font = 'inherit';
-    titleDiv.style.padding = '0 0.3em';
-    titleDiv.style.borderRadius = '0.4em';
-    titleDiv.style.marginRight = '0.5em';
-    const tooltipDiv = document.createElement('div');
-    tooltipDiv.classList.add('tooltip');
-    tooltipDiv.innerHTML = markStyle.tooltip;
-    titleDiv.appendChild(tooltipDiv);
+    titleDiv.style.borderRadius = '0.5em';
+    titleDiv.style.padding = '0.1em 0.5em';
+    titleDiv.style.margin = '0 0.5em';
 
-    const labelDiv = document.createElement('div');
-    labelDiv.innerHTML = markStyle.labelHtml;
-    labelDiv.style.display = 'inline-block';
-    labelDiv.style.backgroundColor = markStyle.color;
-    labelDiv.style.color = 'white';
-    labelDiv.style.borderRadius = '0.45em';
-    labelDiv.style.font = 'inherit';
-    labelDiv.style.fontSize = '0.67em';
-    labelDiv.style.padding = '0.05em 0.2em';
-    labelDiv.style.verticalAlign = '0.17em';
-    titleDiv.appendChild(labelDiv);
+    // put badge
+    const badgeDiv = document.createElement('div');
+    badgeDiv.innerHTML = markStyle.badgeHtml;
+    badgeDiv.classList.add('lif-has-tooltip');
+    badgeDiv.style.backgroundColor = markStyle.badgeColor;
+    badgeDiv.style.color = 'white';
+    badgeDiv.style.borderRadius = '0.45em';
+    badgeDiv.style.font = 'inherit';
+    badgeDiv.style.fontSize = '0.67em';
+    badgeDiv.style.padding = '0.05em 0.2em';
+    badgeDiv.style.verticalAlign = '0.17em';
+    titleDiv.appendChild(badgeDiv);
 
-    // put original title contents
-    const titleText = titleContents[0];
-    titleText.textContent = ' ' + titleText.textContent.trim() + ' ';
-    titleDiv.appendChild(titleText);
-    for (let i = 1; i < titleContents.length; i++)
-        titleDiv.appendChild(titleContents[i]);
+    // put title contents
+    titleContents.forEach(titleContent => titleDiv.appendChild(titleContent));
     titleH2.appendChild(titleDiv);
 
-    // finally change the color of upper bar image blue to green
+    // put tooltip on badge:hover
+    const tooltipDiv = document.createElement('div');
+    tooltipDiv.classList.add('lif-tooltip');
+    tooltipDiv.innerText = markStyle.tooltipText;
+    badgeDiv.appendChild(tooltipDiv);
+
+    // put hue-rotate filter
     let upperBar = document.querySelector('.pophead');
     if (!upperBar)
         upperBar = document.querySelector('#pop_top');
