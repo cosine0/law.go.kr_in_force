@@ -228,13 +228,10 @@ function handleLaw(titleElement) {
             // so we check the last law in the history list and say as much as we can
             // about it
             historyInfos.sort((a, b) => {
-                let orderA = a.enforceDate + a.lawSequence;
-                let orderB = b.enforceDate + b.lawSequence;
-                if (orderA > orderB)
-                    return -1;
-                if (orderA < orderB)
-                    return 1;
-                return 0;
+                if (b.enforceDate !== a.enforceDate) {
+                    return parseInt(b.enforceDate) - parseInt(a.enforceDate);
+                }
+                return parseInt(b.lawSequence) - parseInt(a.lawSequence);
             });
             if (historyInfos[0].isAbolished) {
                 mark(titleElement, markStyles.abolished);
