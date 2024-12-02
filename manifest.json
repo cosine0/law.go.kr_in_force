@@ -19,7 +19,8 @@
                 "https://*.law.go.kr/*lsSc.do?*",
                 "https://*.law.go.kr/*admRulSc.do?*",
                 "https://*.law.go.kr/*lsSideInfoP.do?*",
-                "https://*.law.go.kr/*conAdmrulByLsPop.do?*"
+                "https://*.law.go.kr/*conAdmrulByLsPop.do?*",
+                "https://*.law.go.kr/*lsLinkCommonInfo.do?*"
             ],
             "all_frames": true,
             "js": [

@@ -114,6 +114,7 @@ function mark(titleH2, markStyle) {
         coloredButtonBar.style.filter = `hue-rotate(${markStyle.hueRotate}deg)`;
 }
 
+const enforceDateRegex = /\[시행 (?<year>\d+)\. (?<month>\d+)\. (?<day>\d+)\.]/;
 function handleLaw(titleElement) {
     let lsId;
     let currentSequence;
@@ -126,28 +127,45 @@ function handleLaw(titleElement) {
         let enforceDateElement = document.querySelector('#conTop > div > span');
         if (!enforceDateElement)
             enforceDateElement = document.querySelector('#linkedJoContent > div.subtit1');
-        const enforceDateMatch = enforceDateElement.textContent.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
-        currentEnforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
+        const enforceDateGroups = enforceDateElement.textContent.match(enforceDateRegex).groups;
+        currentEnforceDate = enforceDateGroups.year + enforceDateGroups.month.padStart(2, '0') + enforceDateGroups.day.padStart(2, '0');
+        historyUrl = `/LSW//lsHstListR.do?lsId=${lsId}`;
+    } else if (location.pathname.search(/lsLinkCommonInfo/) !== -1) {
+        lsId = document.querySelector('#conTop > h2').id;
+        currentSequence = document.querySelector('#conTop > div.ct_sub > img').getAttribute('onclick').match(/javascript:window\.open\('\/LSW\/lsInfoP.do\?lsiSeq=(.*)'\)/)[1];
+        const enforceDateElement = document.querySelector('#conTop > div.ct_sub > span');
+        const enforceDateGroups = enforceDateElement.textContent.match(enforceDateRegex).groups;
+        currentEnforceDate = enforceDateGroups.year + enforceDateGroups.month.padStart(2, '0') + enforceDateGroups.day.padStart(2, '0');
         historyUrl = `/LSW//lsHstListR.do?lsId=${lsId}`;
     } else if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop|admRulSc/) !== -1) {
         lsId = document.querySelector('#admRulSeq').value;
         currentSequence = document.querySelector('#lsiSeq').value;
         const enforceDateElement = document.querySelector('#conTop > div');
-        const enforceDateMatch = enforceDateElement.textContent.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
-        currentEnforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
+        const enforceDateGroups = enforceDateElement.textContent.match(enforceDateRegex).groups;
+        currentEnforceDate = enforceDateGroups.year + enforceDateGroups.month.padStart(2, '0') + enforceDateGroups.day.padStart(2, '0');
         historyUrl = `/LSW/admRulHstListR.do?admRulSeq=${lsId}`;
     } else if (location.pathname.search(/ordinLinkProc|ordinInfoP/) !== -1) {
         lsId = document.querySelector('#ordinId').value;
         currentSequence = document.querySelector('#ordinSeq').value;
         const enforceDateElement = document.querySelector('#conTop div.subtit1');
-        const enforceDateMatch = enforceDateElement.textContent.match(/\[시행 (\d+)\. (\d+)\. (\d+)\.]/);
-        currentEnforceDate = enforceDateMatch[1] + enforceDateMatch[2].padStart(2, '0') + enforceDateMatch[3].padStart(2, '0');
+        const enforceDateGroups = enforceDateElement.textContent.match(enforceDateRegex).groups;
+        currentEnforceDate = enforceDateGroups.year + enforceDateGroups.month.padStart(2, '0') + enforceDateGroups.day.padStart(2, '0');
         historyUrl = `/LSW/ordinHstListR.do?ordinId=${lsId}`;
     } else {
         lsId = document.querySelector('#lsId').value;
         currentSequence = document.querySelector('#lsiSeq').value;
         currentEnforceDate = document.querySelector('#efYd').value;
         historyUrl = `/LSW//lsHstListR.do?lsId=${lsId}`;
+    }
+    // throw for unfilled fields
+    if (typeof lsId !== 'string') {
+        throw new Error('No law ID found');
+    }
+    if (typeof currentSequence !== 'string') {
+        throw new Error('No law sequence found');
+    }
+    if (typeof currentEnforceDate !== 'string') {
+        throw new Error('No enforce date found');
     }
     const todayDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     fetch(historyUrl)
