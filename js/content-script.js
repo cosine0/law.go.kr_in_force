@@ -280,6 +280,9 @@ function main() {
     if (location.pathname.search(/^\/+(LSW\/+)?lumLsLinkPop\.do$/) !== -1) {
         waitForElement('#firstRlatLsId')
             .then(() => handleLaw(document.querySelector('.ui-layout-pane.ui-layout-pane-center h2')));
+    } else if (location.pathname.search(/^\/+(LSW\/+)?lsSideInfoP\.do$/) !== -1) {
+        waitForElement('#conTop > h2')
+            .then(titleElement => handleLaw(titleElement));
     } else {
         waitForElement('.ui-layout-pane.ui-layout-pane-center h2')
             .then(titleElement => handleLaw(titleElement));
