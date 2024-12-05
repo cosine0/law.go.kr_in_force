@@ -1,7 +1,7 @@
 {
     "name": "law.go.kr 법령 현행 여부",
     "description": "국가법령정보센터(law.go.kr)에서 보고 있는 법령이 현행인지 표시해 줍니다.",
-    "version": "1.4",
+    "version": "1.5",
     "manifest_version": 3,
     "icons": {
         "48": "img/logo48.png"
@@ -20,7 +20,8 @@
                 "https://*.law.go.kr/*admRulSc.do?*",
                 "https://*.law.go.kr/*lsSideInfoP.do?*",
                 "https://*.law.go.kr/*conAdmrulByLsPop.do?*",
-                "https://*.law.go.kr/*lsLinkCommonInfo.do?*"
+                "https://*.law.go.kr/*lsLinkCommonInfo.do?*",
+                "https://*.law.go.kr/*LsiJoLinkP.do?*"
             ],
             "all_frames": true,
             "js": [
