@@ -137,7 +137,7 @@ function handleLaw(titleElement) {
         const enforceDateGroups = enforceDateElement.textContent.match(enforceDateRegex).groups;
         currentEnforceDate = enforceDateGroups.year + enforceDateGroups.month.padStart(2, '0') + enforceDateGroups.day.padStart(2, '0');
         historyUrl = `/LSW//lsHstListR.do?lsId=${lsId}`;
-    } else if (location.pathname.search(/admRulLsInfoP|conAdmrulByLsPop|admRulSc/) !== -1) {
+    } else if (location.pathname.search(/admRulInfoP|admRulLsInfoP|conAdmrulByLsPop|admRulSc/) !== -1) {
         lsId = document.querySelector('#admRulSeq').value;
         currentSequence = document.querySelector('#lsiSeq').value;
         const enforceDateElement = document.querySelector('#conTop > div');

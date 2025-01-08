@@ -10,6 +10,7 @@
         {
             "matches": [
                 "https://*.law.go.kr/*lsInfoP.do?*",
+                "https://*.law.go.kr/*lsEfInfoP.do?*",
                 "https://*.law.go.kr/*lumLsLinkPop.do?*",
                 "https://*.law.go.kr/*lsBylInfoPLinkR.do?*",
                 "https://*.law.go.kr/*lsLinkProc.do?*",
@@ -21,7 +22,8 @@
                 "https://*.law.go.kr/*lsSideInfoP.do?*",
                 "https://*.law.go.kr/*conAdmrulByLsPop.do?*",
                 "https://*.law.go.kr/*lsLinkCommonInfo.do?*",
-                "https://*.law.go.kr/*LsiJoLinkP.do?*"
+                "https://*.law.go.kr/*LsiJoLinkP.do?*",
+                "https://*.law.go.kr/*admRulInfoP.do?*"
             ],
             "all_frames": true,
             "js": [
